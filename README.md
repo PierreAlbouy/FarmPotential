@@ -8,16 +8,41 @@ Telepac Mapper is a small React application for viewing and editing agricultural
 - Toggle various raster layers and overlays (OpenStreetMap, OpenTopoMap, IGN).
 - Load RPG (Registre Parcellaire Graphique) data for the map's current extent.
 
-## Getting started
-1. Install dependencies:
+## Guide d'installation pour une utilisation locale
+
+1. **Prérequis**
+   - [Node.js](https://nodejs.org/) (version LTS recommandée) et `npm` installés sur votre machine.
+   - L'accès à un terminal (macOS/Linux) ou PowerShell (Windows).
+
+2. **Cloner le dépôt**
+   ```bash
+   git clone https://github.com/<votre-compte>/FarmPotential.git
+   cd FarmPotential
+   ```
+
+3. **Installer les dépendances**
    ```bash
    npm install
    ```
-2. Start the development server:
+
+4. **Configurer la clé API IGN (optionnel)**
+   - Certaines couches cartographiques nécessitent une clé API IGN.
+   - Ouvrez `src/config/rasterLayers.js` et remplacez la valeur de `YOUR_IGN_KEY` par votre clé.
+
+5. **Démarrer le serveur de développement**
    ```bash
    npm run dev
    ```
-   The app is served at [http://localhost:5173](http://localhost:5173).
+   L'application est accessible sur [http://localhost:5173](http://localhost:5173).
+
+6. **Construire une version de production (facultatif)**
+   ```bash
+   npm run build
+   ```
+   Pour prévisualiser le build :
+   ```bash
+   npm run preview
+   ```
 
 ## Building
 Create a production build in `dist/`:
@@ -117,3 +142,11 @@ Run ESLint on the project with:
 ```bash
 npm run lint
 ```
+
+## SoilGrids (point GPS)
+- Endpoint interne: `GET /api/parcels/{parcelId}/soilgrids?refresh=true|false&depth_profile=0-5cm,5-15cm,...`
+- Source: SoilGrids v2 `properties/query` (résolution ~250m).
+- Cache backend: `data/parcel-soilgrids-cache.json` avec TTL par défaut de 30 jours (modifiable dans `SoilGridsCacheRepository`).
+- Stratégie du point: `SOILGRIDS_POINT_STRATEGY=centroid|inside_point` (fallback automatique bbox center si géométrie invalide).
+- Le backend stocke aussi `feature.properties.soilgridsPoint` (lat/lon/strategy/timestamp) pour traçabilité.
+- Les indicateurs dérivés (texture, MO, porosité, RU, drainage, profondeur cible) sont heuristiques et affichés comme estimations.

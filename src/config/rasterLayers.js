@@ -14,8 +14,59 @@ const withOptionalKey = (baseUrl) => {
     GEO_PORTAIL_KEY,
   )}${hash ? `#${hash}` : ""}`;
 };
-const GEO_PORTAIL_SOIL_LAYER =
-  import.meta.env.VITE_GEO_PORTAIL_SOIL_LAYER || "SOL.SOL";
+
+const normaliseFeatureCollection = (payload) => {
+  if (!payload) return { items: [], summary: null };
+
+  if (typeof payload === "string") {
+    return { items: [], summary: payload };
+  }
+
+  if (payload.text && typeof payload.text === "string") {
+    return { items: [], summary: payload.text };
+  }
+
+  const featureCollection =
+    payload?.type === "FeatureCollection"
+      ? payload
+      : payload?.FeatureCollection?.type === "FeatureCollection"
+      ? payload.FeatureCollection
+      : null;
+
+  const features = Array.isArray(featureCollection?.features)
+    ? featureCollection.features
+    : Array.isArray(payload?.features)
+    ? payload.features
+    : [];
+
+  const items = features.map((feature, index) => {
+    const props = feature?.properties || {};
+    const candidateTitle =
+      feature?.id ||
+      props.nom ||
+      props.NOM ||
+      props.libelle ||
+      props.LIBELLE ||
+      props.appellation ||
+      props.APPELLATION ||
+      `Entité ${index + 1}`;
+
+    return {
+      id: feature?.id ?? index,
+      title: String(candidateTitle),
+      properties: props,
+    };
+  });
+
+  const summary =
+    items.length > 0 ? `${items.length} élément${items.length > 1 ? "s" : ""}` : null;
+
+  return { items, summary };
+};
+
+const defaultFeatureInfoParser = (payload) => normaliseFeatureCollection(payload);
+
+export const DEFAULT_FEATURE_INFO_PARSER = defaultFeatureInfoParser;
 
 export const RASTER_LAYERS = [
   {
